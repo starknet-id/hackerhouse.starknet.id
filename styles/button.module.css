@@ -68,7 +68,7 @@
   top: -5px;
   right: -5px;
   bottom: -5px;
-  border: 2px solid var(--background); /* Based on Nimiq Light Blue */
+  border: 2px solid var(--action); /* Based on Nimiq Light Blue */
   border-radius: 500px;
   opacity: 0;
 }

@@ -86,10 +86,17 @@ export default function Home() {
                   Get your Hacker House Identity Token
                 </h1>
                 <p className={styles.text}>
-                  An Identity token is new standard for SBTs that permits it to
-                  really be soulbound. Be part of this first experience on
-                  Starknet and mint yours for the hacker house now !{" "}
-                  <span className="underline">(Here is how it works)</span>
+                  With Account Abstraction, SBTs on Starknet are broken. It's
+                  the reason why the starknet.id team created the Identity
+                  Token, a new standard for SBTs on Starknet. Be part of this
+                  first experience on Starknet and mint your identity token for
+                  the hacker house now !{" "}
+                  <a
+                    href="https://github.com/starknet-id/identity_tokens#readme"
+                    className="underline cursor-pointer"
+                  >
+                    (Here is how it works)
+                  </a>
                 </p>
                 <div className="mt-5 flex w-full">
                   <TextField
@@ -109,7 +116,7 @@ export default function Home() {
                   <div className="ml-2">
                     <Button
                       onClick={
-                        password === "keepStarknetStrange"
+                        password === "KEEPSTARKNETSTRANGE"
                           ? () => setIsRightPassword(true)
                           : () => setIsRightPassword(false)
                       }
