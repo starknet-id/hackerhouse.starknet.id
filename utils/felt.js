@@ -1,6 +1,6 @@
 import BN from "bn.js";
 
-const P = new BN(
+export const P = new BN(
   "800000000000011000000000000000000000000000000000000000000000001",
   16
 );

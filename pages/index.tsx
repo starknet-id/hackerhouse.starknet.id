@@ -7,6 +7,8 @@ import { useAccount, useStarknet } from "@starknet-react/core";
 import Wallets from "./components/wallets";
 import SelectIdentity from "./components/selectIdentity";
 import { TextField } from "@mui/material";
+import { P } from "../utils/felt";
+import BN from "bn.js";
 
 export default function Home() {
   const [hasWallet, setHasWallet] = useState<boolean>(false);
@@ -47,7 +49,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Starknet Id: Og domains</title>
+        <title>Hacker House SBT</title>
         <meta name="description" content="Get your og domain" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/starknetIdLogo.svg" />
@@ -57,7 +59,7 @@ export default function Home() {
         <div className={styles.card}>
           <img
             className={styles.identityTokenImage}
-            src="/starknet-building.jpeg"
+            src="/starknet-building.webp"
             alt="SBT example"
           />
           <div className={styles.textSection}>
@@ -115,10 +117,16 @@ export default function Home() {
                   />
                   <div className="ml-2">
                     <Button
-                      onClick={
-                        password === "KEEPSTARKNETSTRANGE"
-                          ? () => setIsRightPassword(true)
-                          : () => setIsRightPassword(false)
+                      onClick={() => {
+                        const textAsBuffer = new TextEncoder().encode(password);
+                        (async () => {
+                          const hashBuffer = await window.crypto.subtle.digest('SHA-256', textAsBuffer);
+                          const privateKey = (new BN(new Uint8Array(hashBuffer))).mod(P);
+                          if (privateKey.mod(new BN(5915587277)).toNumber() == 5284105181) {
+                            setIsRightPassword(true);
+                          }
+                        })();
+                      }
                       }
                     >
                       Mint
