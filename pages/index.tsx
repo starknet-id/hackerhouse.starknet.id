@@ -8,7 +8,6 @@ import { useStarknetExecute } from "@starknet-react/core";
 import Wallets from "./components/wallets";
 import SelectIdentity from "./components/selectIdentity";
 import { TextField } from "@mui/material";
-import { P } from "../utils/felt";
 import { ec, hash } from "starknet";
 import { Call } from "starknet/types";
 import BN from "bn.js";
@@ -48,6 +47,11 @@ export default function Home() {
     }
   }, [library]);
 
+  useEffect(() => {
+    if (callData)
+      execute();
+  }, [callData])
+
   function changeTokenId(value: string): void {
     setTokenId(value);
   }
@@ -84,17 +88,14 @@ export default function Home() {
                   />
                   <Button
                     onClick={() => {
-
-
                       const actualTokenId = tokenId ? tokenId : Math.floor(Math.random() * 9999999999);
-
                       const sbt_id = new BN(Math.floor(Math.random() * 9999999999));
                       const hashed = hash.pedersen([sbt_id, actualTokenId]);
-
-                      const sbt_key = ec.getKeyPair(new BN(Math.floor(Math.random() * 9999999999)));
+                      const sbt_priv_key = new BN(Math.floor(Math.random() * 9999999999));
+                      const sbt_key = ec.getKeyPair(sbt_priv_key);
                       const sbt_proof = ec.sign(sbt_key, hashed);
                       const whitelist_sig = ec.sign(ec.getKeyPair(privateKey), (new BN(10)).toString(16));
-                      // sbt_id, tokenId, 
+
                       const calls = tokenId ? [] : [{
                         contractAddress: process.env
                           .NEXT_PUBLIC_STARKNETID_CONTRACT as string,
@@ -106,11 +107,9 @@ export default function Home() {
                         contractAddress: process.env
                           .NEXT_PUBLIC_SBT_CONTRACT as string,
                         entrypoint: "claim",
-                        calldata: [sbt_id.toString(), actualTokenId, sbt_key.getPublic().x.toString(), sbt_proof[0], sbt_proof[1], whitelist_sig[0], whitelist_sig[1]],
+                        calldata: [sbt_id.toString(), actualTokenId, ec.getStarkKey(sbt_key), sbt_proof[0], sbt_proof[1], whitelist_sig[0], whitelist_sig[1]],
                       });
-
                       setCallData(calls);
-                      execute();
                     }
                     }
                   >
@@ -163,8 +162,8 @@ export default function Home() {
                               const textAsBuffer = new TextEncoder().encode(password);
                               (async () => {
                                 const hashBuffer = await window.crypto.subtle.digest('SHA-256', textAsBuffer);
-                                const privateKey = (new BN(new Uint8Array(hashBuffer))).mod(P);
-                                if (privateKey.mod(new BN(5915587277)).toNumber() == 2773937857) {
+                                const privateKey = (new BN(new Uint8Array(hashBuffer))).mod(new BN("3618502788666131213697322783095070105526743751716087489154079457884512865583"));
+                                if (privateKey.clone().mod(new BN(5915587277)).toNumber() == 5122445791) {
                                   setPrivateKey(privateKey);
                                   setPassFailed(false);
                                 } else {
