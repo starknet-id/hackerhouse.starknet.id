@@ -9,7 +9,6 @@ import Wallets from "./components/wallets";
 import SelectIdentity from "./components/selectIdentity";
 import { TextField } from "@mui/material";
 import { ec, hash } from "starknet";
-import { Call } from "starknet/types";
 import BN from "bn.js";
 
 export default function Home() {
@@ -23,7 +22,7 @@ export default function Home() {
   const [passFailed, setPassFailed] = useState<boolean>(false);
   const { available, connect, disconnect } = useConnectors();
   const [isConnected, setIsConnected] = useState(false);
-  const [callData, setCallData] = useState<Call[]>([]);
+  const [callData, setCallData] = useState<any[]>([]);
   const { execute } = useStarknetExecute({
     calls: callData as any,
   });
