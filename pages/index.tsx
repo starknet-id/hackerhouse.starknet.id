@@ -82,6 +82,12 @@ export default function Home() {
       entrypoint: "claim",
       calldata: [sbt_id.toString(), actualTokenId, ec.getStarkKey(sbt_key), sbt_proof[0], sbt_proof[1], whitelist_sig[0], whitelist_sig[1]],
     });
+    calls.push({
+      contractAddress: process.env
+        .NEXT_PUBLIC_STARKNETID_CONTRACT as string,
+      entrypoint: "equip",
+      calldata: [process.env.NEXT_PUBLIC_SBT_CONTRACT as string, sbt_id.toString()],
+    });
     setCallData(calls);
   }
 
