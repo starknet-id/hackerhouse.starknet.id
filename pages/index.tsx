@@ -61,15 +61,14 @@ export default function Home() {
 
   function updateCallData(
   ) {
-    const actualTokenId = tokenId ? tokenId : Math.floor(Math.random() * 9999999999);
+    const actualTokenId = tokenId && tokenId != "0" ? tokenId : Math.floor(Math.random() * 9999999999);
     const sbt_id = new BN(Math.floor(Math.random() * 9999999999));
     const hashed = hash.pedersen([sbt_id, actualTokenId]);
     const sbt_priv_key = new BN(Math.floor(Math.random() * 9999999999));
     const sbt_key = ec.getKeyPair(sbt_priv_key);
     const sbt_proof = ec.sign(sbt_key, hashed);
     const whitelist_sig = ec.sign(ec.getKeyPair(privateKey as BN), hashed);
-
-    const calls = tokenId ? [] : [{
+    const calls = tokenId === actualTokenId ? [] : [{
       contractAddress: process.env
         .NEXT_PUBLIC_STARKNETID_CONTRACT as string,
       entrypoint: "mint",
