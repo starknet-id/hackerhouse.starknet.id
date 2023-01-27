@@ -60,6 +60,31 @@ export default function Home() {
     setPassword(value);
   }
 
+  function updateCallData(
+  ) {
+    const actualTokenId = tokenId ? tokenId : Math.floor(Math.random() * 9999999999);
+    const sbt_id = new BN(Math.floor(Math.random() * 9999999999));
+    const hashed = hash.pedersen([sbt_id, actualTokenId]);
+    const sbt_priv_key = new BN(Math.floor(Math.random() * 9999999999));
+    const sbt_key = ec.getKeyPair(sbt_priv_key);
+    const sbt_proof = ec.sign(sbt_key, hashed);
+    const whitelist_sig = ec.sign(ec.getKeyPair(privateKey as BN), hashed);
+
+    const calls = tokenId ? [] : [{
+      contractAddress: process.env
+        .NEXT_PUBLIC_STARKNETID_CONTRACT as string,
+      entrypoint: "mint",
+      calldata: [actualTokenId],
+    }];
+    calls.push({
+      contractAddress: process.env
+        .NEXT_PUBLIC_SBT_CONTRACT as string,
+      entrypoint: "claim",
+      calldata: [sbt_id.toString(), actualTokenId, ec.getStarkKey(sbt_key), sbt_proof[0], sbt_proof[1], whitelist_sig[0], whitelist_sig[1]],
+    });
+    setCallData(calls);
+  }
+
 
   return (
     <>
@@ -86,33 +111,7 @@ export default function Home() {
                     tokenId={tokenId}
                     changeTokenId={changeTokenId}
                   />
-                  <Button
-                    onClick={() => {
-                      const actualTokenId = tokenId ? tokenId : Math.floor(Math.random() * 9999999999);
-                      const sbt_id = new BN(Math.floor(Math.random() * 9999999999));
-                      const hashed = hash.pedersen([sbt_id, actualTokenId]);
-                      const sbt_priv_key = new BN(Math.floor(Math.random() * 9999999999));
-                      const sbt_key = ec.getKeyPair(sbt_priv_key);
-                      const sbt_proof = ec.sign(sbt_key, hashed);
-                      const whitelist_sig = ec.sign(ec.getKeyPair(privateKey), (new BN(10)).toString(16));
-
-                      const calls = tokenId ? [] : [{
-                        contractAddress: process.env
-                          .NEXT_PUBLIC_STARKNETID_CONTRACT as string,
-                        entrypoint: "mint",
-                        calldata: [actualTokenId],
-                      }];
-
-                      calls.push({
-                        contractAddress: process.env
-                          .NEXT_PUBLIC_SBT_CONTRACT as string,
-                        entrypoint: "claim",
-                        calldata: [sbt_id.toString(), actualTokenId, ec.getStarkKey(sbt_key), sbt_proof[0], sbt_proof[1], whitelist_sig[0], whitelist_sig[1]],
-                      });
-                      setCallData(calls);
-                    }
-                    }
-                  >
+                  <Button onClick={updateCallData}>
                     Mint my token
                   </Button>
                 </div>
