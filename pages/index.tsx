@@ -75,21 +75,20 @@ export default function Home() {
         : Math.floor(Math.random() * 9999999999);
     const sbt_id = new BN(Math.floor(Math.random() * 9999999999));
     const hashed = hash.pedersen([sbt_id, actualTokenId]);
-    const sbt_priv_key = new BN(Math.floor(Math.random() * 9999999999));
-    const sbt_key = ec.getKeyPair(sbt_priv_key);
+    const sbt_key = ec.genKeyPair();
     const sbt_proof = ec.sign(sbt_key, hashed);
     const whitelist_sig = ec.sign(ec.getKeyPair(privateKey as BN), hashed);
     const calls =
       tokenId === actualTokenId
         ? []
         : [
-            {
-              contractAddress: process.env
-                .NEXT_PUBLIC_STARKNETID_CONTRACT as string,
-              entrypoint: "mint",
-              calldata: [actualTokenId],
-            },
-          ];
+          {
+            contractAddress: process.env
+              .NEXT_PUBLIC_STARKNETID_CONTRACT as string,
+            entrypoint: "mint",
+            calldata: [actualTokenId],
+          },
+        ];
     calls.push({
       contractAddress: process.env.NEXT_PUBLIC_SBT_CONTRACT as string,
       entrypoint: "claim",
@@ -115,7 +114,7 @@ export default function Home() {
   }
 
   function handlePassword() {
-    const textAsBuffer = new TextEncoder().encode(password);
+    const textAsBuffer = new TextEncoder().encode(password.toLowerCase());
     (async () => {
       const hashBuffer = await window.crypto.subtle.digest(
         "SHA-256",
