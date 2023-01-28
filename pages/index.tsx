@@ -20,8 +20,6 @@ export default function Home() {
   const [password, setPassword] = useState<string>("");
   const [privateKey, setPrivateKey] = useState<BN>();
   const [passFailed, setPassFailed] = useState<boolean>(false);
-  const { available, connect, disconnect } = useConnectors();
-  const [isConnected, setIsConnected] = useState(false);
   const [callData, setCallData] = useState<any[]>([]);
   const { execute } = useStarknetExecute({
     calls: callData as any,
@@ -47,9 +45,8 @@ export default function Home() {
   }, [library]);
 
   useEffect(() => {
-    if (callData)
-      execute();
-  }, [callData])
+    if (callData) execute();
+  }, [callData]);
 
   function changeTokenId(value: string): void {
     setTokenId(value);
@@ -59,36 +56,51 @@ export default function Home() {
     setPassword(value);
   }
 
-  function updateCallData(
-  ) {
-    const actualTokenId = tokenId && tokenId != "0" ? tokenId : Math.floor(Math.random() * 9999999999);
+  function updateCallData() {
+    const actualTokenId =
+      tokenId && tokenId != "0"
+        ? tokenId
+        : Math.floor(Math.random() * 9999999999);
     const sbt_id = new BN(Math.floor(Math.random() * 9999999999));
     const hashed = hash.pedersen([sbt_id, actualTokenId]);
     const sbt_priv_key = new BN(Math.floor(Math.random() * 9999999999));
     const sbt_key = ec.getKeyPair(sbt_priv_key);
     const sbt_proof = ec.sign(sbt_key, hashed);
     const whitelist_sig = ec.sign(ec.getKeyPair(privateKey as BN), hashed);
-    const calls = tokenId === actualTokenId ? [] : [{
-      contractAddress: process.env
-        .NEXT_PUBLIC_STARKNETID_CONTRACT as string,
-      entrypoint: "mint",
-      calldata: [actualTokenId],
-    }];
+    const calls =
+      tokenId === actualTokenId
+        ? []
+        : [
+            {
+              contractAddress: process.env
+                .NEXT_PUBLIC_STARKNETID_CONTRACT as string,
+              entrypoint: "mint",
+              calldata: [actualTokenId],
+            },
+          ];
     calls.push({
-      contractAddress: process.env
-        .NEXT_PUBLIC_SBT_CONTRACT as string,
+      contractAddress: process.env.NEXT_PUBLIC_SBT_CONTRACT as string,
       entrypoint: "claim",
-      calldata: [sbt_id.toString(), actualTokenId, ec.getStarkKey(sbt_key), sbt_proof[0], sbt_proof[1], whitelist_sig[0], whitelist_sig[1]],
+      calldata: [
+        sbt_id.toString(),
+        actualTokenId,
+        ec.getStarkKey(sbt_key),
+        sbt_proof[0],
+        sbt_proof[1],
+        whitelist_sig[0],
+        whitelist_sig[1],
+      ],
     });
     calls.push({
-      contractAddress: process.env
-        .NEXT_PUBLIC_STARKNETID_CONTRACT as string,
+      contractAddress: process.env.NEXT_PUBLIC_STARKNETID_CONTRACT as string,
       entrypoint: "equip",
-      calldata: [process.env.NEXT_PUBLIC_SBT_CONTRACT as string, sbt_id.toString()],
+      calldata: [
+        process.env.NEXT_PUBLIC_SBT_CONTRACT as string,
+        sbt_id.toString(),
+      ],
     });
     setCallData(calls);
   }
-
 
   return (
     <>
@@ -115,9 +127,7 @@ export default function Home() {
                     tokenId={tokenId}
                     changeTokenId={changeTokenId}
                   />
-                  <Button onClick={updateCallData}>
-                    Mint my token
-                  </Button>
+                  <Button onClick={updateCallData}>Mint my token</Button>
                 </div>
               </>
             ) : (
@@ -139,73 +149,68 @@ export default function Home() {
                   </a>
                 </p>
                 <div className="mt-5 flex w-full">
-
-                  {
-
-                    isConnected ?
-
-                      (<>
-                        <TextField
-                          fullWidth
-                          type="password"
-                          label={
-                            passFailed
-                              ? "Try again it's not the valid password"
-                              : "Password"
-                          }
-                          placeholder="Password"
-                          variant="outlined"
-                          onChange={(e) => changePassword(e.target.value)}
-                          error={passFailed}
-                          required
-                        />
-                        <div className="ml-2">
-                          <Button
-                            onClick={() => {
-                              const textAsBuffer = new TextEncoder().encode(password);
-                              (async () => {
-                                const hashBuffer = await window.crypto.subtle.digest('SHA-256', textAsBuffer);
-                                const privateKey = (new BN(new Uint8Array(hashBuffer))).mod(new BN("3618502788666131213697322783095070105526743751716087489154079457884512865583"));
-                                if (privateKey.clone().mod(new BN(5915587277)).toNumber() == 5122445791) {
-                                  setPrivateKey(privateKey);
-                                  setPassFailed(false);
-                                } else {
-                                  setPassFailed(true);
-                                }
-                              })();
-                            }
-                            }
-                          >
-                            Mint
-                          </Button>
-                        </div>
-                      </>
-                      )
-
-                      : <>
-                        <div className="w-full mr-0">
-                          <Button
-                            onClick={() => {
-                              console.log(available)
-                              if (available.length > 0) {
-                                if (available.length === 1) {
-                                  connect(available[0]);
-                                  setIsConnected(true);
-                                } else {
-                                  setHasWallet(true);
-                                }
+                  {account ? (
+                    <>
+                      <TextField
+                        fullWidth
+                        type="password"
+                        label={
+                          passFailed
+                            ? "Try again it's not the valid password"
+                            : "Password"
+                        }
+                        placeholder="Password"
+                        variant="outlined"
+                        onChange={(e) => changePassword(e.target.value)}
+                        error={passFailed}
+                        required
+                      />
+                      <div className="ml-2">
+                        <Button
+                          onClick={() => {
+                            const textAsBuffer = new TextEncoder().encode(
+                              password
+                            );
+                            (async () => {
+                              const hashBuffer =
+                                await window.crypto.subtle.digest(
+                                  "SHA-256",
+                                  textAsBuffer
+                                );
+                              const privateKey = new BN(
+                                new Uint8Array(hashBuffer)
+                              ).mod(
+                                new BN(
+                                  "3618502788666131213697322783095070105526743751716087489154079457884512865583"
+                                )
+                              );
+                              if (
+                                privateKey
+                                  .clone()
+                                  .mod(new BN(5915587277))
+                                  .toNumber() == 5122445791
+                              ) {
+                                setPrivateKey(privateKey);
+                                setPassFailed(false);
                               } else {
-                                setHasWallet(true);
+                                setPassFailed(true);
                               }
-                            }}
-
-                          >
-                            Connect
-                          </Button>
-                        </div>
-                      </>
-                  }
-
+                            })();
+                          }}
+                        >
+                          Mint
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-full mr-0">
+                        <Button onClick={() => setHasWallet(true)}>
+                          Connect
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </>
             )}
