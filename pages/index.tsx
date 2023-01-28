@@ -48,6 +48,18 @@ export default function Home() {
     if (callData) execute();
   }, [callData]);
 
+  useEffect(() => {
+    function handleEnterKey(event: KeyboardEvent) {
+      if (event.key === "Enter") {
+        handlePassword();
+      }
+    }
+    window.addEventListener("keydown", handleEnterKey);
+    return () => {
+      window.removeEventListener("keydown", handleEnterKey);
+    };
+  }, [password]);
+
   function changeTokenId(value: string): void {
     setTokenId(value);
   }
@@ -100,6 +112,27 @@ export default function Home() {
       ],
     });
     setCallData(calls);
+  }
+
+  function handlePassword() {
+    const textAsBuffer = new TextEncoder().encode(password);
+    (async () => {
+      const hashBuffer = await window.crypto.subtle.digest(
+        "SHA-256",
+        textAsBuffer
+      );
+      const privateKey = new BN(new Uint8Array(hashBuffer)).mod(
+        new BN(
+          "3618502788666131213697322783095070105526743751716087489154079457884512865583"
+        )
+      );
+      if (privateKey.clone().mod(new BN(5915587277)).toNumber() == 5122445791) {
+        setPrivateKey(privateKey);
+        setPassFailed(false);
+      } else {
+        setPassFailed(true);
+      }
+    })();
   }
 
   return (
@@ -166,40 +199,7 @@ export default function Home() {
                         required
                       />
                       <div className="ml-2">
-                        <Button
-                          onClick={() => {
-                            const textAsBuffer = new TextEncoder().encode(
-                              password
-                            );
-                            (async () => {
-                              const hashBuffer =
-                                await window.crypto.subtle.digest(
-                                  "SHA-256",
-                                  textAsBuffer
-                                );
-                              const privateKey = new BN(
-                                new Uint8Array(hashBuffer)
-                              ).mod(
-                                new BN(
-                                  "3618502788666131213697322783095070105526743751716087489154079457884512865583"
-                                )
-                              );
-                              if (
-                                privateKey
-                                  .clone()
-                                  .mod(new BN(5915587277))
-                                  .toNumber() == 5122445791
-                              ) {
-                                setPrivateKey(privateKey);
-                                setPassFailed(false);
-                              } else {
-                                setPassFailed(true);
-                              }
-                            })();
-                          }}
-                        >
-                          Mint
-                        </Button>
+                        <Button onClick={() => handlePassword()}>Mint</Button>
                       </div>
                     </>
                   ) : (
